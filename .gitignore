@@ -1,0 +1,39 @@
+# Build and compiler outputs
+target/
+bin/
+obj/
+*.class
+*.jar
+*.war
+*.ear
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+
+# Dependencies
+node_modules/
+vendor/
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.tox/
+.venv/
+venv/
+ENV/
+env/
+
+# IDE and OS files
+.idea/
+.vscode/
+*.suo
+*.user
+*.sln.docstates
+.DS_Store
+Thumbs.db
