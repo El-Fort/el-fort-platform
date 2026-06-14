@@ -1,0 +1,15 @@
+{
+  "version": "local-ngn-v1",
+  "signature_algorithm": "HMAC-SHA256",
+  "signature_header_format": "v1=<base64_digest>",
+  "api_secret": "cert_secret_123",
+  "timestamp": "1760000000",
+  "body": {
+    "amount": "2500.00",
+    "currency": "NGN",
+    "efn_reference": "EFNTEST001"
+  },
+  "raw_body": "{\"amount\":\"2500.00\",\"currency\":\"NGN\",\"efn_reference\":\"EFNTEST001\"}",
+  "expected_signature": "v1=RKEPL8oxeNyLoKEOOnk7rrtjR+O2rVrQ3VE10Nx8nR8=",
+  "idempotency_key": "EFNTEST001:authorizations"
+}

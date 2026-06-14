@@ -1,0 +1,359 @@
+openapi: 3.0.3
+info:
+  title: EFN Partner Bank Adapter API
+  version: local-ngn-v1
+  description: Bank-hosted adapter contract for local EFN production transactions.
+servers:
+  - url: https://bank-adapter.example.com
+security:
+  - EfnApiKey: []
+paths:
+  /efn/v1/accounts/resolve:
+    post:
+      summary: Resolve and validate a real bank account binding
+      operationId: resolveAccount
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/EfnTimestamp'
+        - $ref: '#/components/parameters/EfnSignature'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountResolveRequest'
+      responses:
+        '200':
+          description: Account resolved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResolveResponse'
+        '401': {description: Invalid EFN credentials or signature}
+        '409': {description: Idempotency conflict}
+  /efn/v1/accounts/balance:
+    post:
+      summary: Return available balance where permitted
+      operationId: balanceInquiry
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/EfnTimestamp'
+        - $ref: '#/components/parameters/EfnSignature'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BalanceRequest'
+      responses:
+        '200':
+          description: Balance result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceResponse'
+        '401': {description: Invalid EFN credentials or signature}
+        '409': {description: Idempotency conflict}
+  /efn/v1/authorizations:
+    post:
+      summary: Validate source account and place hold/reservation
+      operationId: createAuthorization
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/EfnTimestamp'
+        - $ref: '#/components/parameters/EfnSignature'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthorizationRequest'
+      responses:
+        '200':
+          description: Authorized or declined
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdapterTransactionResponse'
+        '401': {description: Invalid EFN credentials or signature}
+        '409': {description: Idempotency conflict}
+  /efn/v1/authorizations/{authorization_id}/capture:
+    post:
+      summary: Capture authorization and debit actual bank account
+      operationId: captureAuthorization
+      parameters:
+        - name: authorization_id
+          in: path
+          required: true
+          schema: {type: string}
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/EfnTimestamp'
+        - $ref: '#/components/parameters/EfnSignature'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CaptureRequest'
+      responses:
+        '200':
+          description: Captured/debited
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdapterTransactionResponse'
+        '401': {description: Invalid EFN credentials or signature}
+        '404': {description: Authorization not found}
+        '409': {description: Idempotency conflict}
+  /efn/v1/credits:
+    post:
+      summary: Credit destination account for local EFN transfer
+      operationId: creditDestination
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/EfnTimestamp'
+        - $ref: '#/components/parameters/EfnSignature'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreditRequest'
+      responses:
+        '200':
+          description: Credited
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdapterTransactionResponse'
+        '401': {description: Invalid EFN credentials or signature}
+        '409': {description: Idempotency conflict}
+  /efn/v1/authorizations/{authorization_id}/reversal:
+    post:
+      summary: Reverse/void hold or captured transaction where possible
+      operationId: reverseAuthorization
+      parameters:
+        - name: authorization_id
+          in: path
+          required: true
+          schema: {type: string}
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/EfnTimestamp'
+        - $ref: '#/components/parameters/EfnSignature'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReversalRequest'
+      responses:
+        '200':
+          description: Reversed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdapterTransactionResponse'
+        '401': {description: Invalid EFN credentials or signature}
+        '404': {description: Authorization not found}
+        '409': {description: Idempotency conflict}
+  /efn/v1/transactions/{efn_reference}:
+    get:
+      summary: Return transaction status by EFN reference
+      operationId: getTransaction
+      parameters:
+        - name: efn_reference
+          in: path
+          required: true
+          schema: {type: string}
+        - $ref: '#/components/parameters/EfnTimestamp'
+        - $ref: '#/components/parameters/EfnSignature'
+      responses:
+        '200':
+          description: Transaction status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionStatusResponse'
+        '401': {description: Invalid EFN credentials or signature}
+        '404': {description: EFN reference not found}
+  /efn/v1/reconciliation/report:
+    post:
+      summary: Accept reconciliation report or return reconciliation status
+      operationId: reconciliationReport
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/EfnTimestamp'
+        - $ref: '#/components/parameters/EfnSignature'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReconciliationReportRequest'
+      responses:
+        '200':
+          description: Reconciliation accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReconciliationReportResponse'
+        '401': {description: Invalid EFN credentials or signature}
+components:
+  securitySchemes:
+    EfnApiKey:
+      type: apiKey
+      in: header
+      name: X-EFN-API-Key
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema: {type: string}
+    EfnTimestamp:
+      name: X-EFN-Timestamp
+      in: header
+      required: true
+      schema: {type: string}
+    EfnSignature:
+      name: X-EFN-Signature
+      in: header
+      required: true
+      schema: {type: string, pattern: '^v1=.+'}
+  schemas:
+    AccountResolveRequest:
+      type: object
+      required: [efn_reference, uan, account_number, bank_code]
+      properties:
+        efn_reference: {type: string}
+        uan: {type: string}
+        account_number: {type: string}
+        bank_code: {type: string}
+    AccountResolveResponse:
+      type: object
+      required: [success, status, account_number, account_name, currency]
+      properties:
+        success: {type: boolean}
+        status: {type: string, enum: [active, frozen, closed, not_found]}
+        account_number: {type: string}
+        account_name: {type: string}
+        currency: {type: string, example: NGN}
+        response_code: {type: string}
+        message: {type: string}
+    BalanceRequest:
+      type: object
+      required: [efn_reference, account_number, currency]
+      properties:
+        efn_reference: {type: string}
+        account_number: {type: string}
+        currency: {type: string}
+    BalanceResponse:
+      type: object
+      required: [success, available_balance, currency]
+      properties:
+        success: {type: boolean}
+        available_balance: {type: string}
+        ledger_balance: {type: string}
+        currency: {type: string}
+        response_code: {type: string}
+        message: {type: string}
+    AuthorizationRequest:
+      type: object
+      required: [efn_reference, uan, source_account_number, recipient_account_number, amount, currency, auth_method, terminal_id, nonce]
+      properties:
+        efn_reference: {type: string}
+        authorization_id: {type: string}
+        uan: {type: string}
+        source_account_number: {type: string}
+        source_account_name: {type: string}
+        source_bank_code: {type: string}
+        recipient_account_number: {type: string}
+        recipient_bank_code: {type: string}
+        recipient_name: {type: string}
+        destination_rail: {type: string, enum: [elfort_wallet, elfort_virtual_id, efn_uan, external_bank]}
+        amount: {type: string}
+        currency: {type: string}
+        description: {type: string}
+        auth_method: {type: string, enum: [fingerprint, face, pin]}
+        biometric_verified: {type: boolean}
+        location_verified: {type: boolean}
+        terminal_id: {type: string}
+        nonce: {type: string}
+        purpose: {type: string}
+        requested_at: {type: string, format: date-time}
+    CaptureRequest:
+      allOf:
+        - $ref: '#/components/schemas/AuthorizationRequest'
+    ReversalRequest:
+      allOf:
+        - $ref: '#/components/schemas/AuthorizationRequest'
+    CreditRequest:
+      type: object
+      required: [efn_reference, source_uan, destination_uan, destination_account_number, amount, currency]
+      properties:
+        efn_reference: {type: string}
+        source_uan: {type: string}
+        source_account_number: {type: string}
+        source_account_name: {type: string}
+        source_bank_code: {type: string}
+        destination_uan: {type: string}
+        destination_account_number: {type: string}
+        destination_account_name: {type: string}
+        destination_bank_code: {type: string}
+        amount: {type: string}
+        currency: {type: string}
+        description: {type: string}
+        auth_method: {type: string}
+        terminal_id: {type: string}
+        nonce: {type: string}
+        purpose: {type: string}
+        requested_at: {type: string, format: date-time}
+    AdapterTransactionResponse:
+      type: object
+      required: [success, status]
+      properties:
+        success: {type: boolean}
+        status: {type: string, enum: [authorized, completed, credited, reversed, declined, failed]}
+        authorization_id: {type: string}
+        bank_reference: {type: string}
+        response_code: {type: string}
+        message: {type: string}
+    TransactionStatusResponse:
+      type: object
+      required: [success, efn_reference, status]
+      properties:
+        success: {type: boolean}
+        efn_reference: {type: string}
+        status: {type: string}
+        authorization_id: {type: string}
+        debit_reference: {type: string}
+        credit_reference: {type: string}
+        amount: {type: string}
+        currency: {type: string}
+        updated_at: {type: string, format: date-time}
+    ReconciliationReportRequest:
+      type: object
+      required: [report_id, settlement_date, transactions]
+      properties:
+        report_id: {type: string}
+        settlement_date: {type: string, format: date}
+        transactions:
+          type: array
+          items:
+            type: object
+            required: [efn_reference, amount, currency, status]
+            properties:
+              efn_reference: {type: string}
+              bank_reference: {type: string}
+              amount: {type: string}
+              currency: {type: string}
+              status: {type: string}
+    ReconciliationReportResponse:
+      type: object
+      required: [success, report_id, accepted_count]
+      properties:
+        success: {type: boolean}
+        report_id: {type: string}
+        accepted_count: {type: integer}
+        rejected_count: {type: integer}
+        message: {type: string}

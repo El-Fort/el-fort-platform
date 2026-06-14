@@ -1,0 +1,15 @@
+{
+  "suite": "local-ngn-v1",
+  "base_url": "https://bank-sandbox.example.com",
+  "api_key": "efn_sandbox_bank_key",
+  "api_secret": "replace_with_sandbox_secret",
+  "source_account": "0123456789",
+  "source_account_name": "EFN Source Customer",
+  "destination_account": "9876543210",
+  "destination_account_name": "EFN Destination Customer",
+  "source_bank_code": "SRC",
+  "destination_bank_code": "DST",
+  "amount": "2500.00",
+  "currency": "NGN",
+  "timeout_seconds": 15
+}
